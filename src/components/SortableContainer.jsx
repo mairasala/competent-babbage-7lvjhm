@@ -5,21 +5,23 @@ import { rectSortingStrategy, SortableContext } from "@dnd-kit/sortable";
 
 import SortableItem from "./SortableItem";
 
-import "./Droppable.css";
+import "./SortableContainer.css";
+import Container from "./Container";
 
-const Droppable = ({ id, data }) => {
+const SortableContainer = ({ id, data }) => {
   const { setNodeRef } = useDroppable({ id });
-  console.log(data);
 
   return (
     <SortableContext id={id} items={data} strategy={rectSortingStrategy}>
-      <ul className="droppable" ref={setNodeRef}>
+      <Container>
+      <div ref={setNodeRef} style={{display: 'inline-block'}}>
         {data.map((item) => (
           <SortableItem key={item} id={item} />
         ))}
-      </ul>
+      </div>
+      </Container>
     </SortableContext>
   );
 };
 
-export default WithContext(Droppable);
+export default WithContext(SortableContainer);

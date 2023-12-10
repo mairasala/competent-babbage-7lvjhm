@@ -1,0 +1,7 @@
+.itemsContainer {
+  display: inline-grid;
+  box-sizing: border-box;
+  padding: 20px;
+  grid-auto-flow: column;
+  border: 1px solid red;
+}

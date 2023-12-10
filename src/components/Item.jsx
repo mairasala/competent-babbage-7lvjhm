@@ -9,7 +9,7 @@ const Item = ({ id, dragOverlay }) => {
 
   return (
     <div style={style} className="item">
-      Item {id}
+      {id}
     </div>
   );
 };

@@ -12,19 +12,21 @@ const SortableItem = ({ id }) => {
     setNodeRef,
     transform,
     transition,
-    isDragging
+    isDragging,
   } = useSortable({ id, disabled });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging || disabled ? 0.5 : 1
+    opacity: isDragging || disabled ? 0.5 : 1,
+    display: 'inline-block',
+    backgroundColor: isDragging ? 'red' : 'white'
   };
 
   return (
-    <li style={style} ref={setNodeRef} {...attributes} {...listeners}>
+    <div style={style} ref={setNodeRef} {...attributes} {...listeners} id={id}>
       <Item id={id} />
-    </li>
+    </div>
   );
 };
 

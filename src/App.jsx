@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -10,37 +10,52 @@ import {
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 
-import Droppable from "./components/Droppable";
+import SortableContainer from "./components/SortableContainer";
 import Item from "./components/Item";
 import { arrayMove, insertAtIndex, removeAtIndex } from "./utils/array";
 
 import "./App.css";
 import Context from "./components/Context";
+import DraggableContainer from "./components/DraggablesContainer";
+import { getNewPosition } from "./utils/getOverId";
 
 function App() {
-  const [itemGroups, setItemGroups] = useState({
-    group1: ["1", "2", "3"],
-    group2: ["4", "5", "6"],
-    group3: ["7", "8", "9"],
-  });
+  const [sequences] = useState([
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "J",
+    "K",
+    "L",
+  ]);
+  const [scriptSequences, setScriptsequences] = useState([
+    "A0",
+    "B1",
+    "C2",
+    "D3",
+  ]);
+  const [placeholderScriptsequence, setPlaceholderScriptsequence] =
+    useState(null);
 
   useEffect(() => {}, []);
 
   useEffect(() => {
     let to = setInterval(() => {
-      setItemGroups((items) => {
-        let randomContainer = Math.floor(
-          Math.random() * Object.keys(items).length
-        );
-        const container = Object.keys(items)[randomContainer];
-        const id = Object.keys(items).reduce(
-          (acc, cur) => acc + items[cur].length,
-          1
-        );
-        return {
-          ...items,
-          [container]: [...items[container], id.toString()],
-        };
+      setScriptsequences((scriptSequences) => {
+        const randomSequenceIndex =
+          Math.random() * Object.keys(sequences).length;
+        const randomSequence = sequences[randomSequenceIndex];
+
+        return [
+          ...scriptSequences,
+          `${randomSequence}${scriptSequences.length}`,
+        ];
       });
     }, 1000000000);
 
@@ -69,11 +84,42 @@ function App() {
     if (!overId) {
       return;
     }
+    let overIndex = getNewPosition(over, scriptSequences);
+    overIndex = overIndex !== undefined ? overIndex : scriptSequences.length;
 
-    const activeContainer = active.data.current.sortable.containerId;
-    const overContainer = over.data.current?.sortable.containerId || over.id;
+    const activeIsSequence = !!active.data.current?.container;
 
-    if (activeContainer !== overContainer) {
+    if (activeIsSequence) {
+      if (placeholderScriptsequence?.original === active.id) {
+        const currentPlaceholderIndex = scriptSequences.indexOf(
+          placeholderScriptsequence.id
+        );
+
+        setScriptsequences((elements) => {
+          console.log(
+            `move ${placeholderScriptsequence.id} from ${currentPlaceholderIndex} to ${overIndex} (replace ${over.id})`
+          );
+          return arrayMove(elements, currentPlaceholderIndex, overIndex);
+        });
+      } else {
+        console.log(placeholderScriptsequence);
+        const scriptsequencePlaceholder = `${active.id}${-1}`;
+        setPlaceholderScriptsequence({
+          original: active.id,
+          id: scriptsequencePlaceholder,
+        });
+        setScriptsequences((elements) => {
+          const items = [...elements];
+          items.splice(overIndex, 0, scriptsequencePlaceholder);
+          return items;
+        });
+      }
+    }
+
+    //const activeContainer = active.data.current.sortable.containerId;
+    //const overContainer = over.data.current?.sortable.containerId || over.id;
+
+    /*if (activeContainer !== overContainer) {
       setItemGroups((itemGroups) => {
         const activeIndex = active.data.current.sortable.index;
         const overIndex =
@@ -90,7 +136,7 @@ function App() {
           active.id
         );
       });
-    }
+    }*/
   };
 
   const handleDragEnd = ({ active, over }) => {
@@ -99,7 +145,8 @@ function App() {
       return;
     }
 
-    if (active.id !== over.id) {
+    /* if (active.id !== over.id) {
+      console.log(active.id, over.id,  active.data.current)
       const activeContainer = active.data.current.sortable.containerId;
       const overContainer = over.data.current?.sortable.containerId || over.id;
       const activeIndex = active.data.current.sortable.index;
@@ -130,7 +177,7 @@ function App() {
       }
 
       setItemGroups((itemGroups) => newItems);
-    }
+    }*/
 
     setActiveId(null);
   };
@@ -151,7 +198,7 @@ function App() {
   };
 
   return (
-    <Context.Provider>
+    <Context.Provider value={{}}>
       <DndContext
         sensors={sensors}
         onDragStart={handleDragStart}
@@ -160,14 +207,18 @@ function App() {
         onDragEnd={handleDragEnd}
       >
         <div className="container">
-          {Object.keys(itemGroups).map((group) => (
-            <Droppable
-              id={group}
-              data={itemGroups[group]}
-              activeId={activeId}
-              key={group}
-            />
-          ))}
+          <SortableContainer
+            id={"scriptSequences"}
+            data={scriptSequences}
+            activeId={activeId}
+          />
+        </div>
+        <div className="container">
+          <DraggableContainer
+            id={"sequences"}
+            data={sequences}
+            activeId={activeId}
+          />
         </div>
         <DragOverlay>{activeId ? <Item id={activeId} /> : null}</DragOverlay>
       </DndContext>
