@@ -49,7 +49,7 @@ function App() {
     let to = setInterval(() => {
       setScriptsequences((scriptSequences) => {
         const randomSequenceIndex =
-          Math.random() * Object.keys(sequences).length;
+          Math.round(Math.random() * Object.keys(sequences).length);
         const randomSequence = sequences[randomSequenceIndex];
 
         return [
@@ -57,7 +57,7 @@ function App() {
           `${randomSequence}${scriptSequences.length}`,
         ];
       });
-    }, 1000000000);
+    }, 10000);
 
     return () => {
       clearInterval(to);
@@ -80,14 +80,17 @@ function App() {
 
   const handleDragOver = ({ active, over }) => {
     const overId = over?.id;
+    const activeIsSequence = !!active.data.current?.container;
 
-    if (!overId) {
-      return;
+    if (!overId && activeIsSequence && placeholderScriptsequence) {
+      setScriptsequences((scriptseqs) =>
+        scriptseqs.filter((item) => item !== placeholderScriptsequence.id)
+      );
+      setPlaceholderScriptsequence(null);
+      return 
     }
     let overIndex = getNewPosition(over, scriptSequences);
     overIndex = overIndex !== undefined ? overIndex : scriptSequences.length;
-
-    const activeIsSequence = !!active.data.current?.container;
 
     if (activeIsSequence) {
       if (placeholderScriptsequence?.original === active.id) {
@@ -140,9 +143,37 @@ function App() {
   };
 
   const handleDragEnd = ({ active, over }) => {
+    const activeIsSequence = !!active.data.current?.container;
+
     if (!over) {
       setActiveId(null);
+      if (activeIsSequence && placeholderScriptsequence) {
+        console.log("no over");
+        setScriptsequences((scriptseqs) =>
+          scriptseqs.filter((item) => item !== placeholderScriptsequence.id)
+        );
+      }
+      setPlaceholderScriptsequence(null);
       return;
+    } else if (activeIsSequence) {
+      console.log("with over");
+      setScriptsequences((scriptseqs) => {
+        const items = [...scriptseqs];
+        items.splice(
+          items.indexOf(placeholderScriptsequence.id),
+          1,
+          `${placeholderScriptsequence.original}${scriptseqs.length - 1}`
+        );
+        console.log(items);
+        return items;
+      });
+      setPlaceholderScriptsequence(null);
+    } else {
+      const activeIndex = active.data.current.sortable.index;
+      const overIndex = over.data.current.sortable ? over.data.current.sortable.index : scriptSequences.length
+      setScriptsequences(scriptseqs => {
+        return arrayMove(scriptseqs, activeIndex, overIndex)
+      })
     }
 
     /* if (active.id !== over.id) {
@@ -220,7 +251,9 @@ function App() {
             activeId={activeId}
           />
         </div>
-        <DragOverlay>{activeId ? <Item id={activeId} /> : null}</DragOverlay>
+        <DragOverlay dropAnimation={null}>
+          {activeId ? <Item id={activeId} /> : null}
+        </DragOverlay>
       </DndContext>
     </Context.Provider>
   );

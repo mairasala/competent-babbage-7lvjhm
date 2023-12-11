@@ -18,18 +18,34 @@ const DraggableItem = ({ id, container }) => {
     },
   });
 
-  const style = {
+  /*const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
     backgroundColor: isDragging ? "red" : "yellow",
     display: "inline-block",
-  };
+  };*/
+  const style = isDragging ? {
+    position: 'absolute',
+    transform: `translate3d(${transform?.x}px, ${transform?.y}px, 0)`,
+    cursor: 'move',
+    backgroundColor: 'red',
+    display: 'inline-block',
+    opacity: 0.5
+  } :
+  {
+    cursor: 'pointer',
+    backgroundColor: "yellow",
+    display: 'inline-block',
+  }
 
   return (
+    <>
     <div style={style} ref={setNodeRef} {...attributes} {...listeners}>
       <Item id={id} />
     </div>
+    {isDragging && <div style={{display: 'inline-block',  backgroundColor: "yellow"}}><Item id={id} style={{ display: 'none !important' }}/></div>}
+    </>
   );
 };
 

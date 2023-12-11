@@ -2,13 +2,14 @@ import React from "react";
 
 import "./Item.css";
 
-const Item = ({ id, dragOverlay }) => {
-  const style = {
+const Item = ({ id, dragOverlay, style = {} }) => {
+  const styleIn = {
+    ...style,
     cursor: dragOverlay ? "grabbing" : "grab",
   };
 
   return (
-    <div style={style} className="item">
+    <div style={styleIn} className="item">
       {id}
     </div>
   );
